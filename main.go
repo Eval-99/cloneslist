@@ -33,6 +33,8 @@ func main() {
 	mux.Handle("/app/", http.StripPrefix("/app", http.FileServer(http.Dir("."))))
 
 	mux.HandleFunc("POST /signup", apiCfg.usersSignUpHandler)
+	mux.HandleFunc("POST /login", apiCfg.userLoginHandler)
+	mux.HandleFunc("PUT /users", apiCfg.userPasswordChangeHandler)
 
 	serverStruct := http.Server{Handler: mux, Addr: ":8080"}
 	serverStruct.ListenAndServe()
