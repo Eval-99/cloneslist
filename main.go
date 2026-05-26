@@ -17,6 +17,7 @@ func main() {
 	dbURL := os.Getenv("DB_URL")
 	platform := os.Getenv("PLATFORM")
 	secret := os.Getenv("SECRET")
+	api_key := os.Getenv("GEOCODIO_API_KEY")
 
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -27,6 +28,7 @@ func main() {
 		db:       database.New(db),
 		platform: platform,
 		secret:   secret,
+		geokey:   api_key,
 	}
 
 	mux := http.NewServeMux()
@@ -35,6 +37,7 @@ func main() {
 	mux.HandleFunc("POST /signup", apiCfg.usersSignUpHandler)
 	mux.HandleFunc("POST /login", apiCfg.userLoginHandler)
 	mux.HandleFunc("PUT /users", apiCfg.userPasswordChangeHandler)
+	mux.HandleFunc("POST /location", apiCfg.location)
 
 	serverStruct := http.Server{Handler: mux, Addr: ":8080"}
 	serverStruct.ListenAndServe()

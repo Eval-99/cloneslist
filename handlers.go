@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -188,4 +190,34 @@ func (cfg *apiConfig) userPasswordChangeHandler(writter http.ResponseWriter, req
 	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
 	writter.WriteHeader(200)
 	writter.Write([]byte(dat))
+}
+
+func (cfg *apiConfig) location(writter http.ResponseWriter, request *http.Request) {
+	req, err := decode(request)
+	if err != nil {
+		log.Printf("Error decoding request fields: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	if req.Address == "" || req.City == "" || req.State == "" || req.Zip == "" {
+		log.Print("Error: malformed address")
+		writter.WriteHeader(400)
+		return
+	}
+
+	url := cfg.createUrl(req)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Println(string(body))
 }
