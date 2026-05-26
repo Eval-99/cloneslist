@@ -2,8 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"time"
@@ -192,7 +190,21 @@ func (cfg *apiConfig) userPasswordChangeHandler(writter http.ResponseWriter, req
 	writter.Write([]byte(dat))
 }
 
-func (cfg *apiConfig) location(writter http.ResponseWriter, request *http.Request) {
+func (cfg *apiConfig) userCreatePost(writter http.ResponseWriter, request *http.Request) {
+	token, err := auth.GetBearerToken(request.Header)
+	if err != nil {
+		log.Printf("Error token is missing or malformed: %s", err)
+		writter.WriteHeader(401)
+		return
+	}
+
+	validatedUserID, err := auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		log.Printf("Error token is invalid: %s", err)
+		writter.WriteHeader(401)
+		return
+	}
+
 	req, err := decode(request)
 	if err != nil {
 		log.Printf("Error decoding request fields: %s", err)
@@ -200,36 +212,41 @@ func (cfg *apiConfig) location(writter http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	if req.Address == "" || req.City == "" || req.State == "" || req.Zip == "" {
-		log.Print("Error: malformed address")
-		writter.WriteHeader(400)
-		return
-	}
+	database.CreatePostParams{UserID: validatedUserID}
+	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-	url := cfg.createUrl(req)
+	// if len(req.Body) > 140 {
+	// 	res := responseFields{}
+	// 	res.Error = "Chirp is too long"
+	//
+	// 	dat, err := json.Marshal(res)
+	// 	if err != nil {
+	// 		log.Printf("Error marshalling JSON: %s", err)
+	// 		writter.WriteHeader(500)
+	// 		return
+	// 	}
+	//
+	// 	writter.WriteHeader(400)
+	// 	writter.Write([]byte(dat))
+	// 	return
+	// }
 
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Print("Error: could not retrive geocoded address")
-		writter.WriteHeader(500)
-		return
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Print("Error: could not read response body")
-		writter.WriteHeader(500)
-		return
-	}
-
-	var results georesults
-	err = json.Unmarshal(body, &results)
-	if err != nil {
-		log.Print("Error: could not unmarshal geocoded results")
-		writter.WriteHeader(500)
-		return
-	}
-
-	fmt.Println(results)
+	// chirp, err := cfg.db.CreateChirp(request.Context(), database.CreateChirpParams{UserID: validatedUserID, Body: profane(req.Body)})
+	// if err != nil {
+	// 	log.Printf("Error creating chirp: %s", err)
+	// 	writter.WriteHeader(500)
+	// 	return
+	// }
+	//
+	// res := chirpConvert(chirp)
+	//
+	// dat, err := json.Marshal(res)
+	// if err != nil {
+	// 	log.Printf("Error marshalling JSON: %s", err)
+	// 	writter.WriteHeader(500)
+	// 	return
+	// }
+	//
+	// writter.WriteHeader(201)
+	// writter.Write([]byte(dat))
 }

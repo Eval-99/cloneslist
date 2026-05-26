@@ -37,7 +37,7 @@ func main() {
 	mux.HandleFunc("POST /signup", apiCfg.usersSignUpHandler)
 	mux.HandleFunc("POST /login", apiCfg.userLoginHandler)
 	mux.HandleFunc("PUT /users", apiCfg.userPasswordChangeHandler)
-	mux.HandleFunc("POST /location", apiCfg.location)
+	mux.HandleFunc("POST /post", apiCfg.userCreatePost)
 
 	serverStruct := http.Server{Handler: mux, Addr: ":8080"}
 	serverStruct.ListenAndServe()

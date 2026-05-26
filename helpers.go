@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -80,13 +82,15 @@ type responseFields struct {
 }
 
 type georesults struct {
-	Results []struct {
-		Accuracy float32 `json:"accuracy"`
-		Location struct {
-			Lat float32 `json:"lat"`
-			Lng float32 `json:"lng"`
-		} `json:"location"`
-	} `json:"results"`
+	Results []result `json:"results"`
+}
+
+type result struct {
+	Accuracy float32 `json:"accuracy"`
+	Location struct {
+		Lat float32 `json:"lat"`
+		Lng float32 `json:"lng"`
+	} `json:"location"`
 }
 
 func decode(r *http.Request) (requestFields, error) {
@@ -118,4 +122,47 @@ func (cfg *apiConfig) createUrl(r requestFields) string {
 	fullUrl.WriteString(cfg.geokey)
 
 	return fullUrl.String()
+}
+
+func (cfg *apiConfig) geocoder(writter http.ResponseWriter, request *http.Request) (georesults, error) {
+	req, err := decode(request)
+	if err != nil {
+		return georesults{}, err
+	}
+
+	if req.Address == "" || req.City == "" || req.State == "" || req.Zip == "" {
+		return georesults{}, errors.New("Error: malformed address")
+	}
+
+	url := cfg.createUrl(req)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return georesults{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return georesults{}, err
+	}
+
+	var results georesults
+	err = json.Unmarshal(body, &results)
+	if err != nil {
+		return georesults{}, err
+	}
+
+	return results, nil
+}
+
+func findBestAddress(results georesults) result {
+	best := result{Accuracy: -1}
+	for _, res := range results.Results {
+		if res.Accuracy > best.Accuracy {
+			best = res
+		}
+	}
+
+	return best
 }
