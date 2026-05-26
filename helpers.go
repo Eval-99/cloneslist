@@ -15,6 +15,29 @@ const (
 	apiUrlPart2 = "&country=USA&api_key="
 )
 
+type categories int
+
+const (
+	forsale categories = iota
+	housing
+	jobs
+	services
+	community
+)
+
+type status int
+
+const (
+	active status = iota
+	sold
+	deleted
+)
+
+type latlng struct {
+	lat float32
+	lng float32
+}
+
 type apiConfig struct {
 	db       *database.Queries
 	platform string
@@ -22,7 +45,7 @@ type apiConfig struct {
 	geokey   string
 }
 
-type User struct {
+type user struct {
 	ID           uuid.UUID `json:"id"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
@@ -65,29 +88,6 @@ type georesults struct {
 		} `json:"location"`
 	} `json:"results"`
 }
-
-type categories int
-
-const (
-	ForSale categories = iota
-	Housing
-	Jobs
-	Services
-	Community
-)
-
-type latlng struct {
-	Lat float32
-	Lng float32
-}
-
-type status int
-
-const (
-	Active status = iota
-	Sold
-	Deleted
-)
 
 func decode(r *http.Request) (requestFields, error) {
 	decoder := json.NewDecoder(r.Body)

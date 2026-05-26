@@ -41,7 +41,7 @@ func (cfg *apiConfig) usersSignUpHandler(writter http.ResponseWriter, request *h
 		return
 	}
 
-	user := User{
+	user := user{
 		ID:        createdUser.ID,
 		CreatedAt: createdUser.CreatedAt,
 		UpdatedAt: createdUser.UpdatedAt,
@@ -109,7 +109,7 @@ func (cfg *apiConfig) userLoginHandler(writter http.ResponseWriter, request *htt
 		return
 	}
 
-	user := User{
+	user := user{
 		ID:           dbUser.ID,
 		CreatedAt:    dbUser.CreatedAt,
 		UpdatedAt:    dbUser.UpdatedAt,
@@ -173,7 +173,7 @@ func (cfg *apiConfig) userPasswordChangeHandler(writter http.ResponseWriter, req
 		return
 	}
 
-	user := User{
+	user := user{
 		ID:        dbUser.ID,
 		CreatedAt: dbUser.CreatedAt,
 		UpdatedAt: dbUser.UpdatedAt,
