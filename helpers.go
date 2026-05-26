@@ -56,6 +56,16 @@ type responseFields struct {
 	Error     string    `json:"error"`
 }
 
+type georesults struct {
+	Results []struct {
+		Accuracy float32 `json:"accuracy"`
+		Location struct {
+			Lat float32 `json:"lat"`
+			Lng float32 `json:"lng"`
+		} `json:"location"`
+	} `json:"results"`
+}
+
 func decode(r *http.Request) (requestFields, error) {
 	decoder := json.NewDecoder(r.Body)
 	req := requestFields{}

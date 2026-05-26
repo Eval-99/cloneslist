@@ -210,14 +210,26 @@ func (cfg *apiConfig) location(writter http.ResponseWriter, request *http.Reques
 
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print("Error: could not retrive geocoded address")
+		writter.WriteHeader(500)
+		return
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		log.Print("Error: could not read response body")
+		writter.WriteHeader(500)
+		return
 	}
 
-	fmt.Println(string(body))
+	var results georesults
+	err = json.Unmarshal(body, &results)
+	if err != nil {
+		log.Print("Error: could not unmarshal geocoded results")
+		writter.WriteHeader(500)
+		return
+	}
+
+	fmt.Println(results)
 }
