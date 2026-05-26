@@ -5,7 +5,6 @@ CREATE TABLE posts (
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     price REAL NOT NULL,
-    category INTEGER NOT NULL,
     location GEOGRAPHY (POINT, 4326) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,

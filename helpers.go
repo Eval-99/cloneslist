@@ -57,16 +57,20 @@ type user struct {
 }
 
 type requestFields struct {
-	Body     string    `json:"body"`
-	Email    string    `json:"email"`
-	UserID   uuid.UUID `json:"user_id"`
-	Password string    `json:"password"`
-	Event    string    `json:"event"`
-	Address  string    `json:"address"`
-	City     string    `json:"city"`
-	State    string    `json:"state"`
-	Zip      string    `json:"zip"`
-	Data     struct {
+	Body        string    `json:"body"`
+	Email       string    `json:"email"`
+	UserID      uuid.UUID `json:"user_id"`
+	Password    string    `json:"password"`
+	Event       string    `json:"event"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Price       float32   `json:"price"`
+	Category    int32     `json:"category"`
+	Address     string    `json:"address"`
+	City        string    `json:"city"`
+	State       string    `json:"state"`
+	Zip         string    `json:"zip"`
+	Data        struct {
 		UserID string `json:"user_id"`
 	} `json:"data"`
 }
@@ -124,12 +128,7 @@ func (cfg *apiConfig) createUrl(r requestFields) string {
 	return fullUrl.String()
 }
 
-func (cfg *apiConfig) geocoder(writter http.ResponseWriter, request *http.Request) (georesults, error) {
-	req, err := decode(request)
-	if err != nil {
-		return georesults{}, err
-	}
-
+func (cfg *apiConfig) geocoder(req requestFields, writter http.ResponseWriter) (georesults, error) {
 	if req.Address == "" || req.City == "" || req.State == "" || req.Zip == "" {
 		return georesults{}, errors.New("Error: malformed address")
 	}

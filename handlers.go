@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -212,8 +213,35 @@ func (cfg *apiConfig) userCreatePost(writter http.ResponseWriter, request *http.
 		return
 	}
 
-	database.CreatePostParams{UserID: validatedUserID}
-	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
+	results, err := cfg.geocoder(req, writter)
+	if err != nil {
+		log.Printf("Error retriving geocoded address: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+	coords := findBestAddress(results)
+
+	postParams := database.CreatePostParams{
+		UserID:      validatedUserID,
+		Title:       req.Title,
+		Description: req.Description,
+		Price:       req.Price,
+		StPoint:     coords.Location.Lat,
+		StPoint_2:   coords.Location.Lng,
+	}
+
+	post, err := cfg.db.CreatePost(request.Context(), postParams)
+	if err != nil {
+		log.Printf("Error creating post in database: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	log.Println("It worked!")
+
+	fmt.Println(post)
+
+	// writter.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	// if len(req.Body) > 140 {
 	// 	res := responseFields{}

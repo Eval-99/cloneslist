@@ -17,7 +17,6 @@ type Post struct {
 	Title       string
 	Description string
 	Price       float32
-	Category    int32
 	Location    interface{}
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
