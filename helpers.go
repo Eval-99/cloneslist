@@ -66,6 +66,29 @@ type georesults struct {
 	} `json:"results"`
 }
 
+type categories int
+
+const (
+	ForSale categories = iota
+	Housing
+	Jobs
+	Services
+	Community
+)
+
+type latlng struct {
+	Lat float32
+	Lng float32
+}
+
+type status int
+
+const (
+	Active status = iota
+	Sold
+	Deleted
+)
+
 func decode(r *http.Request) (requestFields, error) {
 	decoder := json.NewDecoder(r.Body)
 	req := requestFields{}
