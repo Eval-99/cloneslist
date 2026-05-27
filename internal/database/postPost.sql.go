@@ -36,8 +36,7 @@ type CreatePostParams struct {
 }
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
-	row := q.db.QueryRowContext(
-		ctx, createPost,
+	row := q.db.QueryRowContext(ctx, createPost,
 		arg.UserID,
 		arg.Title,
 		arg.Description,

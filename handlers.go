@@ -190,6 +190,64 @@ func (cfg *apiConfig) userPasswordChangeHandler(writter http.ResponseWriter, req
 	writter.Write([]byte(dat))
 }
 
+func (cfg *apiConfig) refreshHandler(writter http.ResponseWriter, request *http.Request) {
+	tokenTime := 3600
+	token, err := auth.GetBearerToken(request.Header)
+	if err != nil {
+		log.Printf("Error token is missing or malformed: %s", err)
+		writter.WriteHeader(401)
+		return
+	}
+
+	dbUser, err := cfg.db.GetUserFromRefreshToken(request.Context(), token)
+	if err != nil {
+		log.Printf("Error token doesn't exist or is expired or revoked: %s", err)
+		writter.WriteHeader(401)
+		return
+	}
+
+	accessToken, err := auth.MakeJWT(dbUser.UserID, cfg.secret, time.Second*time.Duration(tokenTime))
+	if err != nil {
+		log.Printf("Error creating JWT: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	responseUser := user{
+		Token: accessToken,
+	}
+
+	dat, err := json.Marshal(responseUser)
+	if err != nil {
+		log.Printf("Error marshalling JSON: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
+	writter.WriteHeader(200)
+	writter.Write([]byte(dat))
+}
+
+func (cfg *apiConfig) revokeHandler(writter http.ResponseWriter, request *http.Request) {
+	token, err := auth.GetBearerToken(request.Header)
+	if err != nil {
+		log.Printf("Error token is missing or malformed: %s", err)
+		writter.WriteHeader(401)
+		return
+	}
+
+	err = cfg.db.RevokeRefreshToken(request.Context(), token)
+	if err != nil {
+		log.Printf("Error revoking token, malformed or doen not exist: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
+	writter.WriteHeader(204)
+}
+
 func (cfg *apiConfig) userCreatePost(writter http.ResponseWriter, request *http.Request) {
 	token, err := auth.GetBearerToken(request.Header)
 	if err != nil {
