@@ -315,8 +315,6 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 		return
 	}
 
-	log.Println(post.Location)
-
 	log.Println("Post creation successful")
 
 	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
