@@ -257,7 +257,7 @@ func (cfg *apiConfig) revokeHandler(writter http.ResponseWriter, request *http.R
 
 	err = cfg.db.RevokeRefreshToken(request.Context(), token)
 	if err != nil {
-		log.Printf("Error revoking token, malformed or doen not exist: %s", err)
+		log.Printf("Error revoking token, malformed or does not exist: %s", err)
 		writter.WriteHeader(500)
 		return
 	}
