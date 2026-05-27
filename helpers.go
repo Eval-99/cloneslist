@@ -35,11 +35,6 @@ const (
 	deleted
 )
 
-type latlng struct {
-	lat float32
-	lng float32
-}
-
 type apiConfig struct {
 	db       *database.Queries
 	platform string
@@ -128,7 +123,7 @@ func (cfg *apiConfig) createUrl(r requestFields) string {
 	return fullUrl.String()
 }
 
-func (cfg *apiConfig) geocoder(req requestFields, writter http.ResponseWriter) (georesults, error) {
+func (cfg *apiConfig) geocoder(req requestFields) (georesults, error) {
 	if req.Address == "" || req.City == "" || req.State == "" || req.Zip == "" {
 		return georesults{}, errors.New("Error: malformed address")
 	}
@@ -155,7 +150,7 @@ func (cfg *apiConfig) geocoder(req requestFields, writter http.ResponseWriter) (
 	return results, nil
 }
 
-func findBestAddress(results georesults) result {
+func findBestAddress(results georesults) (result, error) {
 	best := result{Accuracy: -1}
 	for _, res := range results.Results {
 		if res.Accuracy > best.Accuracy {
@@ -163,5 +158,9 @@ func findBestAddress(results georesults) result {
 		}
 	}
 
-	return best
+	if best.Accuracy < 0.8 {
+		return result{}, errors.New("Could not find accurate address. Did you fill it in correctly?")
+	}
+
+	return best, nil
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -213,13 +212,18 @@ func (cfg *apiConfig) userCreatePost(writter http.ResponseWriter, request *http.
 		return
 	}
 
-	results, err := cfg.geocoder(req, writter)
+	results, err := cfg.geocoder(req)
 	if err != nil {
 		log.Printf("Error retriving geocoded address: %s", err)
 		writter.WriteHeader(500)
 		return
 	}
-	coords := findBestAddress(results)
+	coords, err := findBestAddress(results)
+	if err != nil {
+		log.Printf("Error retriving geocoded address: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
 
 	postParams := database.CreatePostParams{
 		UserID:      validatedUserID,
@@ -237,44 +241,21 @@ func (cfg *apiConfig) userCreatePost(writter http.ResponseWriter, request *http.
 		return
 	}
 
-	log.Println("It worked!")
+	res := responseFields{}
+	res.ID = post.ID
+	res.CreatedAt = post.CreatedAt
+	res.UpdatedAt = post.UpdatedAt
+	res.Body = req.Body
+	res.UserID = post.UserID
 
-	fmt.Println(post)
+	dat, err := json.Marshal(res)
+	if err != nil {
+		log.Printf("Error marshalling JSON: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
 
-	// writter.Header().Set("Content-Type", "application/json; charset=utf-8")
-
-	// if len(req.Body) > 140 {
-	// 	res := responseFields{}
-	// 	res.Error = "Chirp is too long"
-	//
-	// 	dat, err := json.Marshal(res)
-	// 	if err != nil {
-	// 		log.Printf("Error marshalling JSON: %s", err)
-	// 		writter.WriteHeader(500)
-	// 		return
-	// 	}
-	//
-	// 	writter.WriteHeader(400)
-	// 	writter.Write([]byte(dat))
-	// 	return
-	// }
-
-	// chirp, err := cfg.db.CreateChirp(request.Context(), database.CreateChirpParams{UserID: validatedUserID, Body: profane(req.Body)})
-	// if err != nil {
-	// 	log.Printf("Error creating chirp: %s", err)
-	// 	writter.WriteHeader(500)
-	// 	return
-	// }
-	//
-	// res := chirpConvert(chirp)
-	//
-	// dat, err := json.Marshal(res)
-	// if err != nil {
-	// 	log.Printf("Error marshalling JSON: %s", err)
-	// 	writter.WriteHeader(500)
-	// 	return
-	// }
-	//
-	// writter.WriteHeader(201)
-	// writter.Write([]byte(dat))
+	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
+	writter.WriteHeader(201)
+	writter.Write([]byte(dat))
 }
