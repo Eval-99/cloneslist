@@ -248,7 +248,7 @@ func (cfg *apiConfig) revokeHandler(writter http.ResponseWriter, request *http.R
 	writter.WriteHeader(204)
 }
 
-func (cfg *apiConfig) userCreatePost(writter http.ResponseWriter, request *http.Request) {
+func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request *http.Request) {
 	token, err := auth.GetBearerToken(request.Header)
 	if err != nil {
 		log.Printf("Error token is missing or malformed: %s", err)
