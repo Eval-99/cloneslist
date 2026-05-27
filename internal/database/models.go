@@ -17,7 +17,6 @@ type Post struct {
 	Title       string
 	Description string
 	Price       float32
-	Location    interface{}
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -37,4 +36,5 @@ type User struct {
 	UpdatedAt      time.Time
 	Email          string
 	HashedPassword string
+	Location       interface{}
 }

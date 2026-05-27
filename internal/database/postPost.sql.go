@@ -12,7 +12,7 @@ import (
 )
 
 const createPost = `-- name: CreatePost :one
-INSERT INTO posts (id, created_at, updated_at, user_id, title, description, price, location)
+INSERT INTO posts (id, created_at, updated_at, user_id, title, description, price)
 VALUES (
     gen_random_uuid(),
     now(),
@@ -20,10 +20,9 @@ VALUES (
     $1,
     $2,
     $3,
-    $4,
-    ST_Point($5, $6, 4326)
+    $4
 )
-RETURNING id, user_id, title, description, price, location, created_at, updated_at
+RETURNING id, user_id, title, description, price, created_at, updated_at
 `
 
 type CreatePostParams struct {
@@ -31,8 +30,6 @@ type CreatePostParams struct {
 	Title       string
 	Description string
 	Price       float32
-	StPoint     interface{}
-	StPoint_2   interface{}
 }
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
@@ -41,8 +38,6 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 		arg.Title,
 		arg.Description,
 		arg.Price,
-		arg.StPoint,
-		arg.StPoint_2,
 	)
 	var i Post
 	err := row.Scan(
@@ -51,7 +46,6 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 		&i.Title,
 		&i.Description,
 		&i.Price,
-		&i.Location,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

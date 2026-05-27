@@ -31,7 +31,25 @@ func (cfg *apiConfig) usersSignUpHandler(writter http.ResponseWriter, request *h
 		return
 	}
 
-	params := database.CreateUserParams{Email: req.Email, HashedPassword: pass}
+	results, err := cfg.geocoder(req)
+	if err != nil {
+		log.Printf("Error retriving geocoded address: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+	coords, err := findBestAddress(results)
+	if err != nil {
+		log.Printf("Error retriving geocoded address: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	params := database.CreateUserParams{
+		Email:          req.Email,
+		HashedPassword: pass,
+		StPoint:        coords.Location.Lat,
+		StPoint_2:      coords.Location.Lng,
+	}
 	createdUser, err := cfg.db.CreateUser(request.Context(), params)
 	if err != nil {
 		log.Printf("Error creating createdUser: %s", err)
@@ -270,26 +288,11 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 		return
 	}
 
-	results, err := cfg.geocoder(req)
-	if err != nil {
-		log.Printf("Error retriving geocoded address: %s", err)
-		writter.WriteHeader(500)
-		return
-	}
-	coords, err := findBestAddress(results)
-	if err != nil {
-		log.Printf("Error retriving geocoded address: %s", err)
-		writter.WriteHeader(500)
-		return
-	}
-
 	postParams := database.CreatePostParams{
 		UserID:      validatedUserID,
 		Title:       req.Title,
 		Description: req.Description,
 		Price:       req.Price,
-		StPoint:     coords.Location.Lat,
-		StPoint_2:   coords.Location.Lng,
 	}
 
 	post, err := cfg.db.CreatePost(request.Context(), postParams)
