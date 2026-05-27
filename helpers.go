@@ -56,7 +56,6 @@ type requestFields struct {
 	Email       string    `json:"email"`
 	UserID      uuid.UUID `json:"user_id"`
 	Password    string    `json:"password"`
-	Event       string    `json:"event"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	Price       float32   `json:"price"`
@@ -65,19 +64,16 @@ type requestFields struct {
 	City        string    `json:"city"`
 	State       string    `json:"state"`
 	Zip         string    `json:"zip"`
-	Data        struct {
-		UserID string `json:"user_id"`
-	} `json:"data"`
 }
 
 type responseFields struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Body      string    `json:"body"`
-	UserID    uuid.UUID `json:"user_id"`
-	Valid     bool      `json:"valid"`
-	Error     string    `json:"error"`
+	ID          uuid.UUID `json:"id"`
+	UserID      uuid.UUID `json:"user_id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Price       float32   `json:"price"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type georesults struct {

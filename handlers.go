@@ -301,10 +301,12 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 
 	res := responseFields{}
 	res.ID = post.ID
+	res.UserID = post.UserID
+	res.Title = post.Title
+	res.Description = post.Description
+	res.Price = post.Price
 	res.CreatedAt = post.CreatedAt
 	res.UpdatedAt = post.UpdatedAt
-	res.Body = req.Body
-	res.UserID = post.UserID
 
 	dat, err := json.Marshal(res)
 	if err != nil {
@@ -312,6 +314,10 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 		writter.WriteHeader(500)
 		return
 	}
+
+	log.Println(post.Location)
+
+	log.Println("Post creation successful")
 
 	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
 	writter.WriteHeader(201)
