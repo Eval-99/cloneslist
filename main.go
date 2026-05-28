@@ -36,7 +36,7 @@ func main() {
 
 	mux.HandleFunc("POST /signup", apiCfg.usersSignUpHandler)
 	mux.HandleFunc("POST /login", apiCfg.userLoginHandler)
-	mux.HandleFunc("PUT /users", apiCfg.userPasswordChangeHandler)
+	mux.HandleFunc("PUT /users", apiCfg.userUpdateHandler)
 	mux.HandleFunc("POST /refresh", apiCfg.refreshHandler)
 	mux.HandleFunc("POST /revoke", apiCfg.revokeHandler)
 	mux.HandleFunc("POST /post", apiCfg.userCreatePostHandler)

@@ -146,7 +146,7 @@ func (cfg *apiConfig) userLoginHandler(writter http.ResponseWriter, request *htt
 	writter.Write([]byte(dat))
 }
 
-func (cfg *apiConfig) userPasswordChangeHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *apiConfig) userUpdateHandler(writter http.ResponseWriter, request *http.Request) {
 	token, err := auth.GetBearerToken(request.Header)
 	if err != nil {
 		log.Printf("Error token is missing or malformed: %s", err)
@@ -187,6 +187,28 @@ func (cfg *apiConfig) userPasswordChangeHandler(writter http.ResponseWriter, req
 		log.Printf("Error could not find user via access token: %s", err)
 		writter.WriteHeader(500)
 		return
+	}
+
+	if req.Address != "" || req.City != "" || req.State != "" || req.Zip != "" {
+		results, err := cfg.geocoder(req)
+		if err != nil {
+			log.Printf("Error retriving geocoded address: %s", err)
+			writter.WriteHeader(500)
+			return
+		}
+		coords, err := findBestAddress(results)
+		if err != nil {
+			log.Printf("Error retriving geocoded address: %s", err)
+			writter.WriteHeader(500)
+			return
+		}
+		locationParams := database.UpdateUsersLocationByIDParams{
+			ID:        validatedUserID,
+			StPoint:   coords.Location.Lat,
+			StPoint_2: coords.Location.Lng,
+		}
+
+		cfg.db.UpdateUsersLocationByID(request.Context(), locationParams)
 	}
 
 	user := user{
