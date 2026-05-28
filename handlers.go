@@ -288,6 +288,13 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 		return
 	}
 
+	err = filterCategory(req.Category)
+	if err != nil {
+		log.Println(err)
+		writter.WriteHeader(400)
+		return
+	}
+
 	postParams := database.CreatePostParams{
 		UserID:      validatedUserID,
 		Title:       req.Title,
@@ -302,6 +309,8 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 		writter.WriteHeader(500)
 		return
 	}
+
+	cfg.db.AddToCategory(request.Context(), database.AddToCategoryParams{Name: req.Category})
 
 	res := responseFields{}
 	res.ID = post.ID

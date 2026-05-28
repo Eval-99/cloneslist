@@ -17,16 +17,6 @@ const (
 	apiUrlPart2 = "&country=USA&api_key="
 )
 
-type categories int
-
-const (
-	forsale categories = iota
-	housing
-	jobs
-	services
-	community
-)
-
 type apiConfig struct {
 	db       *database.Queries
 	platform string
@@ -51,7 +41,7 @@ type requestFields struct {
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	Price       float32   `json:"price"`
-	Category    int32     `json:"category"`
+	Category    string    `json:"category"`
 	Address     string    `json:"address"`
 	City        string    `json:"city"`
 	State       string    `json:"state"`
@@ -152,4 +142,21 @@ func findBestAddress(results georesults) (result, error) {
 	}
 
 	return best, nil
+}
+
+func filterCategory(category string) error {
+	switch category {
+	case "forsale":
+		return nil
+	case "housing":
+		return nil
+	case "jobs":
+		return nil
+	case "services":
+		return nil
+	case "community":
+		return nil
+	default:
+		return errors.New("Error: not a valid category")
+	}
 }
