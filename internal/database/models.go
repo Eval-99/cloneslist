@@ -11,6 +11,11 @@ import (
 	"github.com/google/uuid"
 )
 
+type Category struct {
+	Name   string
+	PostID uuid.UUID
+}
+
 type Post struct {
 	ID          uuid.UUID
 	UserID      uuid.UUID
