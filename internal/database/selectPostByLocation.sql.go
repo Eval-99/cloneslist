@@ -10,7 +10,7 @@ import (
 )
 
 const selectPostsByLocation = `-- name: SelectPostsByLocation :many
-SELECT p.id, p.user_id, p.title, p.description, p.price, p.created_at, p.updated_at
+SELECT p.id, p.user_id, p.title, p.description, p.price, p.status, p.created_at, p.updated_at
 FROM posts p
 JOIN users u ON p.user_id = u.id
 WHERE ST_DWITHIN(
@@ -40,6 +40,7 @@ func (q *Queries) SelectPostsByLocation(ctx context.Context, arg SelectPostsByLo
 			&i.Title,
 			&i.Description,
 			&i.Price,
+			&i.Status,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

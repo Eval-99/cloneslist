@@ -17,6 +17,7 @@ type Post struct {
 	Title       string
 	Description string
 	Price       float32
+	Status      string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

@@ -27,14 +27,6 @@ const (
 	community
 )
 
-type status int
-
-const (
-	active status = iota
-	sold
-	deleted
-)
-
 type apiConfig struct {
 	db       *database.Queries
 	platform string
@@ -74,6 +66,7 @@ type responseFields struct {
 	Price       float32   `json:"price"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+	Status      string    `json:"status"`
 }
 
 type georesults struct {

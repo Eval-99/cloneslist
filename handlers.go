@@ -293,6 +293,7 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 		Title:       req.Title,
 		Description: req.Description,
 		Price:       req.Price,
+		Status:      "active",
 	}
 
 	post, err := cfg.db.CreatePost(request.Context(), postParams)
@@ -310,6 +311,7 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 	res.Price = post.Price
 	res.CreatedAt = post.CreatedAt
 	res.UpdatedAt = post.UpdatedAt
+	res.Status = post.Status
 
 	dat, err := json.Marshal(res)
 	if err != nil {
