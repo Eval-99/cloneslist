@@ -103,7 +103,7 @@ func (cfg *apiConfig) createUrl(r requestFields) string {
 }
 
 func (cfg *apiConfig) geocoder(req requestFields) (georesults, error) {
-	if req.Address == "" || req.City == "" || req.State == "" || req.Zip == "" {
+	if req.City == "" || req.State == "" {
 		return georesults{}, errors.New("Error: malformed address")
 	}
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -356,4 +357,63 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
 	writter.WriteHeader(201)
 	writter.Write([]byte(dat))
+}
+
+func (cfg *apiConfig) postsSearchHandler(writter http.ResponseWriter, request *http.Request) {
+	req, err := decode(request)
+	if err != nil {
+		log.Printf("Error decoding request fields: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	fmt.Println(req.UserID)
+
+	user, err := cfg.db.UsersByID(request.Context(), req.UserID)
+	if err != nil {
+		log.Printf("Error: must have 'city' and 'state' URL query or User ID header %s", err)
+		writter.WriteHeader(400)
+		return
+	}
+
+	// fmt.Sprintf("POINT(%f %f)", lng, lat)
+
+	fmt.Println(user.Location)
+
+	// city := request.URL.Query().Get("city")
+	// state := request.URL.Query().Get("state")
+	//
+	// var location interface{}
+	// if city == "" || state == "" {
+	// 	user, err := cfg.db.UsersByID(request.Context(), req.UserID)
+	// 	if err != nil {
+	// 		log.Printf("Error: must have 'city' and 'state' URL query or User ID header %s", err)
+	// 		writter.WriteHeader(400)
+	// 		return
+	// 	}
+	// 	location = user.Location
+	// } else {
+	// }
+
+	// dbUser, err := cfg.db.UsersByEmail(request.Context(), req.Email)
+	// if err != nil {
+	// 	log.Printf("Incorrect email or password")
+	// 	writter.WriteHeader(401)
+	// 	return
+	// }
+	//
+	// params := database.SelectPostsByLocationParams{StDwithin: dbUser.Location, Column2: distance}
+	// result, err := cfg.db.SelectPostsByLocation(request.Context(), params)
+	// if err != nil {
+	// 	log.Printf("Incorrect email or password")
+	// 	writter.WriteHeader(401)
+	// 	return
+	// }
+	//
+	// for _, post := range result {
+	// 	log.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+	// 	log.Println(post)
+	// 	log.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+	// }
+	// writter.WriteHeader(200)
 }

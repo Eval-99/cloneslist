@@ -40,6 +40,7 @@ func main() {
 	mux.HandleFunc("POST /refresh", apiCfg.refreshHandler)
 	mux.HandleFunc("POST /revoke", apiCfg.revokeHandler)
 	mux.HandleFunc("POST /post", apiCfg.userCreatePostHandler)
+	mux.HandleFunc("POST /thing", apiCfg.postsSearchHandler)
 
 	serverStruct := http.Server{Handler: mux, Addr: ":8080"}
 	serverStruct.ListenAndServe()
