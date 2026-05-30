@@ -160,3 +160,27 @@ func filterCategory(category string) error {
 		return errors.New("Error: not a valid category")
 	}
 }
+
+func (cfg *apiConfig) searchLocation(request *http.Request, location interface{}, distance int) ([]database.Post, error) {
+	params := database.SelectPostsByLocationParams{StDwithin: location, Column2: distance}
+	posts, err := cfg.db.SelectPostsByLocation(request.Context(), params)
+	if err != nil {
+		return []database.Post{}, err
+	}
+
+	return posts, nil
+}
+
+func postConvert(post database.Post) responseFields {
+	res := responseFields{}
+	res.ID = post.ID
+	res.UserID = post.UserID
+	res.Title = post.Title
+	res.Description = post.Description
+	res.Price = post.Price
+	res.CreatedAt = post.CreatedAt
+	res.UpdatedAt = post.UpdatedAt
+	res.Status = post.Status
+
+	return res
+}

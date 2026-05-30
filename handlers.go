@@ -419,17 +419,27 @@ func (cfg *apiConfig) postsSearchHandler(writter http.ResponseWriter, request *h
 		}
 	}
 
-	params := database.SelectPostsByLocationParams{StDwithin: location, Column2: distance}
-	posts, err := cfg.db.SelectPostsByLocation(request.Context(), params)
+	posts, err := cfg.searchLocation(request, location, distance)
 	if err != nil {
 		log.Printf("Error: could not fetch posts by location: %v", err)
+		writter.WriteHeader(400)
+		return
+	}
+
+	postSlice := []responseFields{}
+	for _, post := range posts {
+		res := postConvert(post)
+		postSlice = append(postSlice, res)
+	}
+
+	dat, err := json.Marshal(postSlice)
+	if err != nil {
+		log.Printf("Error marshalling JSON: %s", err)
 		writter.WriteHeader(500)
 		return
 	}
 
-	for _, post := range posts {
-		log.Println(post)
-	}
-
+	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
 	writter.WriteHeader(200)
+	writter.Write([]byte(dat))
 }
