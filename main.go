@@ -34,13 +34,13 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/app/", http.StripPrefix("/app", http.FileServer(http.Dir("."))))
 
-	mux.HandleFunc("POST /signup", apiCfg.usersSignUpHandler)
-	mux.HandleFunc("POST /login", apiCfg.userLoginHandler)
-	mux.HandleFunc("PUT /users", apiCfg.userUpdateHandler)
-	mux.HandleFunc("POST /refresh", apiCfg.refreshHandler)
-	mux.HandleFunc("POST /revoke", apiCfg.revokeHandler)
-	mux.HandleFunc("POST /post", apiCfg.userCreatePostHandler)
-	mux.HandleFunc("POST /thing", apiCfg.postsSearchHandler)
+	mux.HandleFunc("POST /user/signup", apiCfg.usersSignUpHandler)
+	mux.HandleFunc("POST /user/login", apiCfg.userLoginHandler)
+	mux.HandleFunc("PUT /user/update", apiCfg.userUpdateHandler)
+	mux.HandleFunc("POST /user/post", apiCfg.userCreatePostHandler)
+	mux.HandleFunc("POST /api/refresh", apiCfg.refreshHandler)
+	mux.HandleFunc("POST /api/revoke", apiCfg.revokeHandler)
+	mux.HandleFunc("POST /posts/search", apiCfg.postsSearchHandler)
 
 	serverStruct := http.Server{Handler: mux, Addr: ":8080"}
 	serverStruct.ListenAndServe()
