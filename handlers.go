@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Eval-99/cloneslist/internal/auth"
@@ -406,15 +407,27 @@ func (cfg *apiConfig) postsSearchHandler(writter http.ResponseWriter, request *h
 		location = user.Location
 	}
 
-	params := database.SelectPostsByLocationParams{StDwithin: location, Column2: 100000}
-	result, err := cfg.db.SelectPostsByLocation(request.Context(), params)
+	var distance int
+	if request.URL.Query().Get("distance") == "" {
+		distance = 50
+	} else {
+		distance, err = strconv.Atoi(request.URL.Query().Get("distance"))
+		if err != nil {
+			log.Printf("Error could not parse distance: %s", err)
+			writter.WriteHeader(400)
+			return
+		}
+	}
+
+	params := database.SelectPostsByLocationParams{StDwithin: location, Column2: distance}
+	posts, err := cfg.db.SelectPostsByLocation(request.Context(), params)
 	if err != nil {
 		log.Printf("Error: could not fetch posts by location: %v", err)
 		writter.WriteHeader(500)
 		return
 	}
 
-	for _, post := range result {
+	for _, post := range posts {
 		log.Println(post)
 	}
 
