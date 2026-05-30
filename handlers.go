@@ -10,7 +10,6 @@ import (
 
 	"github.com/Eval-99/cloneslist/internal/auth"
 	"github.com/Eval-99/cloneslist/internal/database"
-	"github.com/google/uuid"
 )
 
 func (cfg *apiConfig) usersSignUpHandler(writter http.ResponseWriter, request *http.Request) {
@@ -376,8 +375,35 @@ func (cfg *apiConfig) postsSearchHandler(writter http.ResponseWriter, request *h
 	req.City = request.URL.Query().Get("city")
 	req.State = request.URL.Query().Get("state")
 
+	token, err := auth.GetBearerToken(request.Header)
+	if err != nil {
+		if fmt.Sprintf("%v", err) == "Authorization header missing" {
+			token = ""
+		} else {
+			log.Printf("Error : %s", err)
+			writter.WriteHeader(401)
+			return
+		}
+	}
+
 	var location interface{}
-	if req.UserID == uuid.Nil {
+
+	if token != "" {
+		validatedUserID, err := auth.ValidateJWT(token, cfg.secret)
+		if err != nil {
+			log.Printf("Error token is invalid: %s", err)
+			writter.WriteHeader(401)
+			return
+		}
+
+		user, err := cfg.db.UsersByID(request.Context(), validatedUserID)
+		if err != nil {
+			log.Printf("Error could not find user id: %s", err)
+			writter.WriteHeader(400)
+			return
+		}
+		location = user.Location
+	} else if req.City != "" && req.State != "" {
 		results, err := cfg.geocoder(req)
 		if err != nil {
 			log.Printf("Error retriving geocoded address: %s", err)
@@ -397,14 +423,10 @@ func (cfg *apiConfig) postsSearchHandler(writter http.ResponseWriter, request *h
 			writter.WriteHeader(500)
 			return
 		}
-	} else if req.UserID != uuid.Nil {
-		user, err := cfg.db.UsersByID(request.Context(), req.UserID)
-		if err != nil {
-			log.Printf("Error could not find user id: %s", err)
-			writter.WriteHeader(400)
-			return
-		}
-		location = user.Location
+	} else {
+		log.Println("Error need to have city and state or bearer token")
+		writter.WriteHeader(400)
+		return
 	}
 
 	var distance int
