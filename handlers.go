@@ -11,6 +11,7 @@ import (
 
 	"github.com/Eval-99/cloneslist/internal/auth"
 	"github.com/Eval-99/cloneslist/internal/database"
+	"github.com/google/uuid"
 )
 
 func (cfg *apiConfig) usersSignUpHandler(writter http.ResponseWriter, request *http.Request) {
@@ -523,6 +524,39 @@ func (cfg *apiConfig) postsSearchHandler(writter http.ResponseWriter, request *h
 		sort.Slice(postSlice, func(i, j int) bool {
 			return postSlice[i].Price > postSlice[j].Price
 		})
+	}
+
+	dat, err := json.Marshal(postSlice)
+	if err != nil {
+		log.Printf("Error marshalling JSON: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
+	writter.WriteHeader(200)
+	writter.Write([]byte(dat))
+}
+
+func (cfg *apiConfig) postsByUserIDHandler(writter http.ResponseWriter, request *http.Request) {
+	user_id, err := uuid.Parse(request.PathValue("UserID"))
+	if err != nil {
+		log.Printf("Error parsing chirp ID, not a valid uuid: %s", err)
+		writter.WriteHeader(404)
+		return
+	}
+
+	posts, err := cfg.db.PostsByUserID(request.Context(), user_id)
+	if err != nil {
+		log.Printf("Error retriving posts from user ID, not a valid uuid: %s", err)
+		writter.WriteHeader(404)
+		return
+	}
+
+	postSlice := []responseFields{}
+	for _, post := range posts {
+		res := postConvert(post)
+		postSlice = append(postSlice, res)
 	}
 
 	dat, err := json.Marshal(postSlice)
