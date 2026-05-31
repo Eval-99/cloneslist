@@ -233,6 +233,32 @@ func (cfg *apiConfig) userUpdateHandler(writter http.ResponseWriter, request *ht
 	writter.Write([]byte(dat))
 }
 
+func (cfg *apiConfig) userDeleteHandler(writter http.ResponseWriter, request *http.Request) {
+	token, err := auth.GetBearerToken(request.Header)
+	if err != nil {
+		log.Printf("Error token is missing or malformed: %s", err)
+		writter.WriteHeader(401)
+		return
+	}
+
+	validatedUserID, err := auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		log.Printf("Error token is invalid: %s", err)
+		writter.WriteHeader(401)
+		return
+	}
+
+	err = cfg.db.DeleteUser(request.Context(), validatedUserID)
+	if err != nil {
+		log.Printf("Error deleting user: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
+	writter.WriteHeader(204)
+}
+
 func (cfg *apiConfig) refreshHandler(writter http.ResponseWriter, request *http.Request) {
 	tokenTime := 3600
 	token, err := auth.GetBearerToken(request.Header)
