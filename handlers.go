@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
@@ -476,6 +477,26 @@ func (cfg *apiConfig) postsSearchHandler(writter http.ResponseWriter, request *h
 	for _, post := range posts {
 		res := postConvert(post)
 		postSlice = append(postSlice, res)
+	}
+
+	sorting := request.URL.Query().Get("sort")
+	switch sorting {
+	case "timedesc":
+		sort.Slice(postSlice, func(i, j int) bool {
+			return postSlice[i].CreatedAt.After(postSlice[j].CreatedAt)
+		})
+	case "timeasc":
+		sort.Slice(postSlice, func(i, j int) bool {
+			return postSlice[i].CreatedAt.Before(postSlice[j].CreatedAt)
+		})
+	case "pricedesc":
+		sort.Slice(postSlice, func(i, j int) bool {
+			return postSlice[i].Price < postSlice[j].Price
+		})
+	case "priceasc":
+		sort.Slice(postSlice, func(i, j int) bool {
+			return postSlice[i].Price > postSlice[j].Price
+		})
 	}
 
 	dat, err := json.Marshal(postSlice)
