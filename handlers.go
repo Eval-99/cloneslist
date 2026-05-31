@@ -234,6 +234,38 @@ func (cfg *apiConfig) userUpdateHandler(writter http.ResponseWriter, request *ht
 	writter.Write([]byte(dat))
 }
 
+func (cfg *apiConfig) userGetHandler(writter http.ResponseWriter, request *http.Request) {
+	user_id, err := uuid.Parse(request.PathValue("UserID"))
+	if err != nil {
+		log.Printf("Error parsing post ID, not a valid uuid: %s", err)
+		writter.WriteHeader(404)
+		return
+	}
+
+	dbUser, err := cfg.db.UsersByID(request.Context(), user_id)
+	if err != nil {
+		log.Printf("Error retriving post from post ID, not a valid uuid: %s", err)
+		writter.WriteHeader(404)
+		return
+	}
+
+	user := user{
+		ID:    dbUser.ID,
+		Email: dbUser.Email,
+	}
+
+	dat, err := json.Marshal(user)
+	if err != nil {
+		log.Printf("Error marshalling JSON: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
+	writter.WriteHeader(200)
+	writter.Write([]byte(dat))
+}
+
 func (cfg *apiConfig) userDeleteHandler(writter http.ResponseWriter, request *http.Request) {
 	token, err := auth.GetBearerToken(request.Header)
 	if err != nil {
