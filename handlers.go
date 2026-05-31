@@ -538,10 +538,39 @@ func (cfg *apiConfig) postsSearchHandler(writter http.ResponseWriter, request *h
 	writter.Write([]byte(dat))
 }
 
+func (cfg *apiConfig) postByIDHandler(writter http.ResponseWriter, request *http.Request) {
+	post_id, err := uuid.Parse(request.PathValue("PostID"))
+	if err != nil {
+		log.Printf("Error parsing post ID, not a valid uuid: %s", err)
+		writter.WriteHeader(404)
+		return
+	}
+
+	post, err := cfg.db.PostByID(request.Context(), post_id)
+	if err != nil {
+		log.Printf("Error retriving post from post ID, not a valid uuid: %s", err)
+		writter.WriteHeader(404)
+		return
+	}
+
+	res := postConvert(post)
+
+	dat, err := json.Marshal(res)
+	if err != nil {
+		log.Printf("Error marshalling JSON: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
+	writter.WriteHeader(200)
+	writter.Write([]byte(dat))
+}
+
 func (cfg *apiConfig) postsByUserIDHandler(writter http.ResponseWriter, request *http.Request) {
 	user_id, err := uuid.Parse(request.PathValue("UserID"))
 	if err != nil {
-		log.Printf("Error parsing chirp ID, not a valid uuid: %s", err)
+		log.Printf("Error parsing user ID, not a valid uuid: %s", err)
 		writter.WriteHeader(404)
 		return
 	}

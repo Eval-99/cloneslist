@@ -42,6 +42,7 @@ func main() {
 	mux.HandleFunc("POST /api/refresh", apiCfg.refreshHandler)
 	mux.HandleFunc("POST /api/revoke", apiCfg.revokeHandler)
 	mux.HandleFunc("GET /posts/search", apiCfg.postsSearchHandler)
+	mux.HandleFunc("GET /posts/{PostID}", apiCfg.postByIDHandler)
 	mux.HandleFunc("GET /posts/user/{UserID}", apiCfg.postsByUserIDHandler)
 
 	serverStruct := http.Server{Handler: mux, Addr: ":8080"}
