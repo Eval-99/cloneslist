@@ -44,7 +44,8 @@ func main() {
 	mux.HandleFunc("POST /api/revoke", apiCfg.revokeHandler)
 
 	mux.HandleFunc("POST /user/post", apiCfg.userCreatePostHandler)
-	mux.HandleFunc("DELETE /posts/{PostID}", apiCfg.postDeleteHandler)
+	mux.HandleFunc("PUT /user/post/{PostID}", apiCfg.postUpdateHandler)
+	mux.HandleFunc("DELETE /user/posts/{PostID}", apiCfg.postDeleteHandler)
 
 	mux.HandleFunc("GET /posts/search", apiCfg.postsSearchHandler)
 	mux.HandleFunc("GET /posts/{PostID}", apiCfg.postByIDHandler)

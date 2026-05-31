@@ -46,6 +46,7 @@ type requestFields struct {
 	City        string    `json:"city"`
 	State       string    `json:"state"`
 	Zip         string    `json:"zip"`
+	Status      string    `json:"status"`
 }
 
 type responseFields struct {
@@ -158,6 +159,17 @@ func filterCategory(category string) error {
 		return nil
 	default:
 		return errors.New("Error: not a valid category")
+	}
+}
+
+func filterStatus(status string) error {
+	switch status {
+	case "active":
+		return nil
+	case "sold":
+		return nil
+	default:
+		return errors.New("Error: not a valid status")
 	}
 }
 

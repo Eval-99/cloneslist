@@ -420,6 +420,114 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 	writter.Write([]byte(dat))
 }
 
+func (cfg *apiConfig) postUpdateHandler(writter http.ResponseWriter, request *http.Request) {
+	token, err := auth.GetBearerToken(request.Header)
+	if err != nil {
+		log.Printf("Error token is missing or malformed: %s", err)
+		writter.WriteHeader(401)
+		return
+	}
+
+	validatedUserID, err := auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		log.Printf("Error token is invalid: %s", err)
+		writter.WriteHeader(401)
+		return
+	}
+
+	post_id, err := uuid.Parse(request.PathValue("PostID"))
+	if err != nil {
+		log.Printf("Error parsing post ID, not a valid uuid: %s", err)
+		writter.WriteHeader(404)
+		return
+	}
+
+	dbPost, err := cfg.db.PostByID(request.Context(), post_id)
+	if err != nil {
+		log.Printf("Error retriving post from post ID, not a valid uuid: %s", err)
+		writter.WriteHeader(404)
+		return
+	}
+
+	if dbPost.UserID != validatedUserID {
+		log.Printf("Error token user id does not match post user id: %s", err)
+		writter.WriteHeader(403)
+		return
+	}
+
+	req, err := decode(request)
+	if err != nil {
+		log.Printf("Error decoding request fields: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	err = filterStatus(req.Status)
+	if err != nil {
+		log.Println(err)
+		writter.WriteHeader(400)
+		return
+	}
+
+	postParams := database.UpdatePostParams{
+		ID:          post_id,
+		Title:       req.Title,
+		Description: req.Description,
+		Price:       req.Price,
+		Status:      req.Status,
+	}
+
+	post, err := cfg.db.UpdatePost(request.Context(), postParams)
+	if err != nil {
+		log.Printf("Error updating post in database: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	if req.Category != "" {
+		err = filterCategory(req.Category)
+		if err != nil {
+			log.Println(err)
+			writter.WriteHeader(400)
+			return
+		}
+
+		oldCategory, err := cfg.db.PostCategoryByID(request.Context(), post.ID)
+		if err != nil {
+			log.Printf("Error retriving post category from post ID, not a valid uuid: %s", err)
+			writter.WriteHeader(404)
+			return
+		}
+
+		if oldCategory.Name != req.Category {
+			cfg.db.UpdatePostCategory(request.Context(), database.UpdatePostCategoryParams{PostID: post.ID, Name: req.Category})
+		}
+	}
+
+	res := responseFields{}
+	res.ID = post.ID
+	res.UserID = post.UserID
+	res.Title = post.Title
+	res.Description = post.Description
+	res.Price = post.Price
+	res.CreatedAt = post.CreatedAt
+	res.UpdatedAt = post.UpdatedAt
+	res.Status = post.Status
+
+	dat, err := json.Marshal(res)
+	if err != nil {
+		log.Printf("Error marshalling JSON: %s", err)
+		writter.WriteHeader(500)
+		return
+	}
+
+	log.Println("Post creation successful")
+
+	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
+	writter.WriteHeader(201)
+	writter.Write([]byte(dat))
+}
+
 func (cfg *apiConfig) postDeleteHandler(writter http.ResponseWriter, request *http.Request) {
 	token, err := auth.GetBearerToken(request.Header)
 	if err != nil {
