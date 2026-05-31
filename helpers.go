@@ -161,6 +161,49 @@ func filterCategory(category string) error {
 	}
 }
 
+func (cfg *apiConfig) searchLocationTermCat(request *http.Request, location interface{}, distance int) ([]database.Post, error) {
+	params := database.SelectPostsByLocationTermCatParams{
+		StDwithin: location,
+		Column2:   distance,
+		ToTsquery: request.URL.Query().Get("s"),
+		Name:      request.URL.Query().Get("category"),
+	}
+	posts, err := cfg.db.SelectPostsByLocationTermCat(request.Context(), params)
+	if err != nil {
+		return []database.Post{}, err
+	}
+
+	return posts, nil
+}
+
+func (cfg *apiConfig) searchLocationTerm(request *http.Request, location interface{}, distance int) ([]database.Post, error) {
+	params := database.SelectPostsByLocationTermParams{
+		StDwithin: location,
+		Column2:   distance,
+		ToTsquery: request.URL.Query().Get("s"),
+	}
+	posts, err := cfg.db.SelectPostsByLocationTerm(request.Context(), params)
+	if err != nil {
+		return []database.Post{}, err
+	}
+
+	return posts, nil
+}
+
+func (cfg *apiConfig) searchLocationCat(request *http.Request, location interface{}, distance int) ([]database.Post, error) {
+	params := database.SelectPostsByLocationCatParams{
+		StDwithin: location,
+		Column2:   distance,
+		Name:      request.URL.Query().Get("category"),
+	}
+	posts, err := cfg.db.SelectPostsByLocationCat(request.Context(), params)
+	if err != nil {
+		return []database.Post{}, err
+	}
+
+	return posts, nil
+}
+
 func (cfg *apiConfig) searchLocation(request *http.Request, location interface{}, distance int) ([]database.Post, error) {
 	params := database.SelectPostsByLocationParams{StDwithin: location, Column2: distance}
 	posts, err := cfg.db.SelectPostsByLocation(request.Context(), params)

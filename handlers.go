@@ -334,7 +334,7 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 		return
 	}
 
-	cfg.db.AddToCategory(request.Context(), database.AddToCategoryParams{Name: req.Category})
+	cfg.db.AddToCategory(request.Context(), database.AddToCategoryParams{Name: req.Category, PostID: post.ID})
 
 	res := responseFields{}
 	res.ID = post.ID
@@ -441,11 +441,35 @@ func (cfg *apiConfig) postsSearchHandler(writter http.ResponseWriter, request *h
 		}
 	}
 
-	posts, err := cfg.searchLocation(request, location, distance)
-	if err != nil {
-		log.Printf("Error: could not fetch posts by location: %v", err)
-		writter.WriteHeader(400)
-		return
+	var posts []database.Post
+	if request.URL.Query().Get("s") != "" && request.URL.Query().Get("category") != "" {
+		posts, err = cfg.searchLocationTermCat(request, location, distance)
+		if err != nil {
+			log.Printf("Error: could not fetch posts by location: %v", err)
+			writter.WriteHeader(400)
+			return
+		}
+	} else if request.URL.Query().Get("s") != "" {
+		posts, err = cfg.searchLocationTerm(request, location, distance)
+		if err != nil {
+			log.Printf("Error: could not fetch posts by location: %v", err)
+			writter.WriteHeader(400)
+			return
+		}
+	} else if request.URL.Query().Get("category") != "" {
+		posts, err = cfg.searchLocationCat(request, location, distance)
+		if err != nil {
+			log.Printf("Error: could not fetch posts by location: %v", err)
+			writter.WriteHeader(400)
+			return
+		}
+	} else {
+		posts, err = cfg.searchLocation(request, location, distance)
+		if err != nil {
+			log.Printf("Error: could not fetch posts by location: %v", err)
+			writter.WriteHeader(400)
+			return
+		}
 	}
 
 	postSlice := []responseFields{}
