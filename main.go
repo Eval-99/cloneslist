@@ -38,9 +38,13 @@ func main() {
 	mux.HandleFunc("POST /user/login", apiCfg.userLoginHandler)
 	mux.HandleFunc("PUT /user/update", apiCfg.userUpdateHandler)
 	mux.HandleFunc("DELETE /user/delete", apiCfg.userDeleteHandler)
-	mux.HandleFunc("POST /user/post", apiCfg.userCreatePostHandler)
+
 	mux.HandleFunc("POST /api/refresh", apiCfg.refreshHandler)
 	mux.HandleFunc("POST /api/revoke", apiCfg.revokeHandler)
+
+	mux.HandleFunc("POST /user/post", apiCfg.userCreatePostHandler)
+	mux.HandleFunc("DELETE /posts/{PostID}", apiCfg.postDeleteHandler)
+
 	mux.HandleFunc("GET /posts/search", apiCfg.postsSearchHandler)
 	mux.HandleFunc("GET /posts/{PostID}", apiCfg.postByIDHandler)
 	mux.HandleFunc("GET /posts/user/{UserID}", apiCfg.postsByUserIDHandler)
