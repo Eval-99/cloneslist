@@ -67,20 +67,20 @@ go build -o cloneslist && ./cloneslist
 
 ### Create user account.
 
+The address must be valid
+
 ```bash
 curl -X POST "http://localhost:8080/user/signup" -d '{"email": "example@email.com", "password": "somepassword", "address": "1234 Some St", "city": "Towntown", "state": "CA", "zip": "12345"}'
 ```
 
-The response will be something like this.
+Response:
 
 ```json
 {
   "id": "7dc6d38d-0d22-463d-9929-a13572bcb00c",
   "created_at": "2026-06-01T17:05:40.784057Z",
   "updated_at": "2026-06-01T17:05:40.784057Z",
-  "email": "example@email.com",
-  "token": "",
-  "refresh_token": ""
+  "email": "example@email.com"
 }
 ```
 
@@ -90,7 +90,7 @@ The response will be something like this.
 curl -X POST "http://localhost:8080/user/login" -d '{"email": "example@email.com", "password": "somepassword"}'
 ```
 
-The response will be something like this.
+Response:
 
 ```json
 {
@@ -102,3 +102,92 @@ The response will be something like this.
   "refresh_token": "c5802f6eb17743cc81e4fe102973d904e37429fe401d0629535beb6148074324"
 }
 ```
+
+### Update user account
+
+```bash
+curl -X PUT http://localhost:8080/user/update -d '{"email": "example2@email.com", "password": "newpassword", "address": "1234 Someother St", "city": "Towntwo", "state": "CA", "zip": "54321"}' -H "Authorization: Bearer <token>"
+```
+
+Updating the address, city, state, and zip is optional.
+The address must be valid.
+
+Response:
+
+```json
+{
+  "id": "7dc6d38d-0d22-463d-9929-a13572bcb00c",
+  "created_at": "2026-06-01T17:05:40.784057Z",
+  "updated_at": "2026-06-01T17:49:31.237689Z",
+  "email": "example2@email.com"
+}
+```
+
+### Get user info
+
+```bash
+curl -X GET http://localhost:8080/user/<user_id>
+```
+
+Response:
+
+```json
+{
+  "id": "7dc6d38d-0d22-463d-9929-a13572bcb00c",
+  "email": "example2@email.com"
+}
+```
+
+### Delete user account
+
+```bash
+curl -X DELETE http://localhost:8080/user/delete -d '{"user_id": <user_id>}' -H "Authorization: Bearer <token>"
+```
+
+### Get new token using refresh token
+
+```bash
+curl -X POST http://localhost:8080/api/refresh -H "Authorization: Bearer <refresh_token>"
+```
+
+Response:
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjaGlycHktYWNjZXN"
+}
+```
+
+### Revoke refresh token
+
+```bash
+curl -X POST http://localhost:8080/api/revoke -H "Authorization: Bearer <refresh_token>"
+```
+
+### Create post
+
+```bash
+curl -X POST http://localhost:8080/user/post -d '{"title": "This is an item I am trying to sell", "description": "This is my description", "price": 20.99, "category": "forsale"}' -H "Authorization: Bearer <token>"
+```
+
+Response:
+
+```json
+{
+  "id": "4419e35e-59b7-43c5-8b3a-f5c3000ab897",
+  "user_id": "7dc6d38d-0d22-463d-9929-a13572bcb00c",
+  "title": "This is an item I am trying to sell",
+  "description": "This is my description",
+  "price": 20.99,
+  "created_at": "2026-06-01T18:03:29.516589Z",
+  "updated_at": "2026-06-01T18:03:29.516589Z"
+}
+```
+
+Avaliable categories are:
+
+1. forsale
+2. housing
+3. jobs
+4. services
+5. community
