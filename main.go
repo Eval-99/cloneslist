@@ -45,7 +45,7 @@ func main() {
 
 	mux.HandleFunc("POST /user/post", apiCfg.userCreatePostHandler)
 	mux.HandleFunc("PUT /user/post/{PostID}", apiCfg.postUpdateHandler)
-	mux.HandleFunc("DELETE /user/posts/{PostID}", apiCfg.postDeleteHandler)
+	mux.HandleFunc("DELETE /user/post/{PostID}", apiCfg.postDeleteHandler)
 
 	mux.HandleFunc("GET /posts/search", apiCfg.postsSearchHandler)
 	mux.HandleFunc("GET /posts/{PostID}", apiCfg.postByIDHandler)
