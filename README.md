@@ -1,4 +1,4 @@
-# Cloneslist:
+# Cloneslist
 
 Craigslist like backend server with location based post searching.
 
@@ -49,14 +49,56 @@ You can create a secret with this command.
 openssl rand -base64 64
 ```
 
-Run database migrations:
+Run database migrations.
 
 ```bash
 goose postgres <postgres_connection_url> up
 ```
 
+You can use the same URL as earlier.
+
 ## Build and run server
 
 ```bash
 go build -o cloneslist && ./cloneslist
+```
+
+## How to use
+
+### Create user account.
+
+```bash
+curl -X POST "http://localhost:8080/user/signup" -d '{"email": "example@email.com", "password": "somepassword", "address": "1234 Some St", "city": "Towntown", "state": "CA", "zip": "12345"}'
+```
+
+The response will be something like this.
+
+```json
+{
+  "id": "7dc6d38d-0d22-463d-9929-a13572bcb00c",
+  "created_at": "2026-06-01T17:05:40.784057Z",
+  "updated_at": "2026-06-01T17:05:40.784057Z",
+  "email": "example@email.com",
+  "token": "",
+  "refresh_token": ""
+}
+```
+
+### Login
+
+```bash
+curl -X POST "http://localhost:8080/user/login" -d '{"email": "example@email.com", "password": "somepassword"}'
+```
+
+The response will be something like this.
+
+```json
+{
+  "id": "7dc6d38d-0d22-463d-9929-a13572bcb00c",
+  "created_at": "2026-06-01T17:05:40.784057Z",
+  "updated_at": "2026-06-01T17:05:40.784057Z",
+  "email": "example@email.com",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjaGlycHktYWNjZXN",
+  "refresh_token": "c5802f6eb17743cc81e4fe102973d904e37429fe401d0629535beb6148074324"
+}
 ```
