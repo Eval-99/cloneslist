@@ -4,7 +4,13 @@ Craigslist like backend server with location based post searching.
 
 This Project is WIP.
 
-## Prerequisites:
+## Motivation
+
+Self-hosted online classifieds with location based filtering now in the power of your own hands.
+
+## Quick Start
+
+### Prerequisites:
 
 1. Have the Go programming language installed
 2. Install PostgreSQL and PostGIS and have a database created.
@@ -15,7 +21,7 @@ This Project is WIP.
 go install github.com/pressly/goose/v3/cmd/goose@latest
 ```
 
-## Setup
+### Setup
 
 All these commands assume a Unix-like system
 
@@ -59,13 +65,13 @@ goose postgres <postgres_connection_url> up
 
 You can use the same URL as earlier.
 
-## Build and run server
+### Build and run server
 
 ```bash
 go build -o cloneslist && ./cloneslist
 ```
 
-## How to use
+## Usage
 
 ### Create user account.
 
@@ -362,3 +368,9 @@ Response:
   }
 ]
 ```
+
+## Contributing
+
+Help would very much be appreciated! The steps needed to start working on the repo are the same as the setup. All you require other than what the setup section covers is SQLC to generate functions that execute SQL on the database.
+
+All pull requests should be submitted to the main branch.
