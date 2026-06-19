@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (cfg *apiConfig) usersSignUpHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) UsersSignUpHandler(writter http.ResponseWriter, request *http.Request) {
 	req, err := decode(request)
 	if err != nil {
 		log.Printf("Error decoding request fields: %s", err)
@@ -54,7 +54,7 @@ func (cfg *apiConfig) usersSignUpHandler(writter http.ResponseWriter, request *h
 		StPoint:        coords.Location.Lat,
 		StPoint_2:      coords.Location.Lng,
 	}
-	createdUser, err := cfg.db.CreateUser(request.Context(), params)
+	createdUser, err := cfg.DB.CreateUser(request.Context(), params)
 	if err != nil {
 		log.Printf("Error creating createdUser: %s", err)
 		writter.WriteHeader(500)
@@ -80,7 +80,7 @@ func (cfg *apiConfig) usersSignUpHandler(writter http.ResponseWriter, request *h
 	writter.Write([]byte(dat))
 }
 
-func (cfg *apiConfig) userLoginHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) UserLoginHandler(writter http.ResponseWriter, request *http.Request) {
 	tokenTime := 3600
 
 	req, err := decode(request)
@@ -96,7 +96,7 @@ func (cfg *apiConfig) userLoginHandler(writter http.ResponseWriter, request *htt
 		return
 	}
 
-	dbUser, err := cfg.db.UsersByEmail(request.Context(), req.Email)
+	dbUser, err := cfg.DB.UsersByEmail(request.Context(), req.Email)
 	if err != nil {
 		log.Printf("Incorrect email or password")
 		writter.WriteHeader(401)
@@ -110,7 +110,7 @@ func (cfg *apiConfig) userLoginHandler(writter http.ResponseWriter, request *htt
 		return
 	}
 
-	token, err := auth.MakeJWT(dbUser.ID, cfg.secret, time.Second*time.Duration(tokenTime))
+	token, err := auth.MakeJWT(dbUser.ID, cfg.Secret, time.Second*time.Duration(tokenTime))
 	if err != nil {
 		log.Printf("Error creating JWT: %s", err)
 		writter.WriteHeader(500)
@@ -122,7 +122,7 @@ func (cfg *apiConfig) userLoginHandler(writter http.ResponseWriter, request *htt
 		UserID:    dbUser.ID,
 		ExpiresAt: time.Now().UTC().Add(time.Hour * 24 * 60),
 	}
-	refresh_token, err := cfg.db.CreateRefreshTokenDBEntry(request.Context(), refreshTokenParams)
+	refresh_token, err := cfg.DB.CreateRefreshTokenDBEntry(request.Context(), refreshTokenParams)
 	if err != nil {
 		log.Printf("Error creating refresh token: %s", err)
 		writter.WriteHeader(500)
@@ -150,7 +150,7 @@ func (cfg *apiConfig) userLoginHandler(writter http.ResponseWriter, request *htt
 	writter.Write([]byte(dat))
 }
 
-func (cfg *apiConfig) userUpdateHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) UserUpdateHandler(writter http.ResponseWriter, request *http.Request) {
 	token, err := auth.GetBearerToken(request.Header)
 	if err != nil {
 		log.Printf("Error token is missing or malformed: %s", err)
@@ -158,7 +158,7 @@ func (cfg *apiConfig) userUpdateHandler(writter http.ResponseWriter, request *ht
 		return
 	}
 
-	validatedUserID, err := auth.ValidateJWT(token, cfg.secret)
+	validatedUserID, err := auth.ValidateJWT(token, cfg.Secret)
 	if err != nil {
 		log.Printf("Error token is invalid: %s", err)
 		writter.WriteHeader(401)
@@ -186,7 +186,7 @@ func (cfg *apiConfig) userUpdateHandler(writter http.ResponseWriter, request *ht
 	}
 
 	params := database.UpdateUsersByIDParams{ID: validatedUserID, Email: req.Email, HashedPassword: pass}
-	dbUser, err := cfg.db.UpdateUsersByID(request.Context(), params)
+	dbUser, err := cfg.DB.UpdateUsersByID(request.Context(), params)
 	if err != nil {
 		log.Printf("Error could not find user via access token: %s", err)
 		writter.WriteHeader(500)
@@ -212,7 +212,7 @@ func (cfg *apiConfig) userUpdateHandler(writter http.ResponseWriter, request *ht
 			StPoint_2: coords.Location.Lng,
 		}
 
-		cfg.db.UpdateUsersLocationByID(request.Context(), locationParams)
+		cfg.DB.UpdateUsersLocationByID(request.Context(), locationParams)
 	}
 
 	user := user{
@@ -234,7 +234,7 @@ func (cfg *apiConfig) userUpdateHandler(writter http.ResponseWriter, request *ht
 	writter.Write([]byte(dat))
 }
 
-func (cfg *apiConfig) userGetHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) UserGetHandler(writter http.ResponseWriter, request *http.Request) {
 	user_id, err := uuid.Parse(request.PathValue("UserID"))
 	if err != nil {
 		log.Printf("Error parsing post ID, not a valid uuid: %s", err)
@@ -242,7 +242,7 @@ func (cfg *apiConfig) userGetHandler(writter http.ResponseWriter, request *http.
 		return
 	}
 
-	dbUser, err := cfg.db.UsersByID(request.Context(), user_id)
+	dbUser, err := cfg.DB.UsersByID(request.Context(), user_id)
 	if err != nil {
 		log.Printf("Error retriving post from post ID, not a valid uuid: %s", err)
 		writter.WriteHeader(404)
@@ -266,7 +266,7 @@ func (cfg *apiConfig) userGetHandler(writter http.ResponseWriter, request *http.
 	writter.Write([]byte(dat))
 }
 
-func (cfg *apiConfig) userDeleteHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) UserDeleteHandler(writter http.ResponseWriter, request *http.Request) {
 	token, err := auth.GetBearerToken(request.Header)
 	if err != nil {
 		log.Printf("Error token is missing or malformed: %s", err)
@@ -274,14 +274,14 @@ func (cfg *apiConfig) userDeleteHandler(writter http.ResponseWriter, request *ht
 		return
 	}
 
-	validatedUserID, err := auth.ValidateJWT(token, cfg.secret)
+	validatedUserID, err := auth.ValidateJWT(token, cfg.Secret)
 	if err != nil {
 		log.Printf("Error token is invalid: %s", err)
 		writter.WriteHeader(401)
 		return
 	}
 
-	err = cfg.db.DeleteUser(request.Context(), validatedUserID)
+	err = cfg.DB.DeleteUser(request.Context(), validatedUserID)
 	if err != nil {
 		log.Printf("Error deleting user: %s", err)
 		writter.WriteHeader(500)
@@ -292,7 +292,7 @@ func (cfg *apiConfig) userDeleteHandler(writter http.ResponseWriter, request *ht
 	writter.WriteHeader(204)
 }
 
-func (cfg *apiConfig) refreshHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) RefreshHandler(writter http.ResponseWriter, request *http.Request) {
 	tokenTime := 3600
 	token, err := auth.GetBearerToken(request.Header)
 	if err != nil {
@@ -301,14 +301,14 @@ func (cfg *apiConfig) refreshHandler(writter http.ResponseWriter, request *http.
 		return
 	}
 
-	dbUser, err := cfg.db.GetUserFromRefreshToken(request.Context(), token)
+	dbUser, err := cfg.DB.GetUserFromRefreshToken(request.Context(), token)
 	if err != nil {
 		log.Printf("Error token doesn't exist or is expired or revoked: %s", err)
 		writter.WriteHeader(401)
 		return
 	}
 
-	accessToken, err := auth.MakeJWT(dbUser.UserID, cfg.secret, time.Second*time.Duration(tokenTime))
+	accessToken, err := auth.MakeJWT(dbUser.UserID, cfg.Secret, time.Second*time.Duration(tokenTime))
 	if err != nil {
 		log.Printf("Error creating JWT: %s", err)
 		writter.WriteHeader(500)
@@ -331,7 +331,7 @@ func (cfg *apiConfig) refreshHandler(writter http.ResponseWriter, request *http.
 	writter.Write([]byte(dat))
 }
 
-func (cfg *apiConfig) revokeHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) RevokeHandler(writter http.ResponseWriter, request *http.Request) {
 	token, err := auth.GetBearerToken(request.Header)
 	if err != nil {
 		log.Printf("Error token is missing or malformed: %s", err)
@@ -339,7 +339,7 @@ func (cfg *apiConfig) revokeHandler(writter http.ResponseWriter, request *http.R
 		return
 	}
 
-	err = cfg.db.RevokeRefreshToken(request.Context(), token)
+	err = cfg.DB.RevokeRefreshToken(request.Context(), token)
 	if err != nil {
 		log.Printf("Error revoking token, malformed or does not exist: %s", err)
 		writter.WriteHeader(500)
@@ -350,7 +350,7 @@ func (cfg *apiConfig) revokeHandler(writter http.ResponseWriter, request *http.R
 	writter.WriteHeader(204)
 }
 
-func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) UserCreatePostHandler(writter http.ResponseWriter, request *http.Request) {
 	token, err := auth.GetBearerToken(request.Header)
 	if err != nil {
 		log.Printf("Error token is missing or malformed: %s", err)
@@ -358,7 +358,7 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 		return
 	}
 
-	validatedUserID, err := auth.ValidateJWT(token, cfg.secret)
+	validatedUserID, err := auth.ValidateJWT(token, cfg.Secret)
 	if err != nil {
 		log.Printf("Error token is invalid: %s", err)
 		writter.WriteHeader(401)
@@ -387,14 +387,14 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 		Status:      "active",
 	}
 
-	post, err := cfg.db.CreatePost(request.Context(), postParams)
+	post, err := cfg.DB.CreatePost(request.Context(), postParams)
 	if err != nil {
 		log.Printf("Error creating post in database: %s", err)
 		writter.WriteHeader(500)
 		return
 	}
 
-	cfg.db.AddToCategory(request.Context(), database.AddToCategoryParams{Name: req.Category, PostID: post.ID})
+	cfg.DB.AddToCategory(request.Context(), database.AddToCategoryParams{Name: req.Category, PostID: post.ID})
 
 	res := responseFields{}
 	res.ID = post.ID
@@ -420,7 +420,7 @@ func (cfg *apiConfig) userCreatePostHandler(writter http.ResponseWriter, request
 	writter.Write([]byte(dat))
 }
 
-func (cfg *apiConfig) postUpdateHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) PostUpdateHandler(writter http.ResponseWriter, request *http.Request) {
 	token, err := auth.GetBearerToken(request.Header)
 	if err != nil {
 		log.Printf("Error token is missing or malformed: %s", err)
@@ -428,7 +428,7 @@ func (cfg *apiConfig) postUpdateHandler(writter http.ResponseWriter, request *ht
 		return
 	}
 
-	validatedUserID, err := auth.ValidateJWT(token, cfg.secret)
+	validatedUserID, err := auth.ValidateJWT(token, cfg.Secret)
 	if err != nil {
 		log.Printf("Error token is invalid: %s", err)
 		writter.WriteHeader(401)
@@ -442,7 +442,7 @@ func (cfg *apiConfig) postUpdateHandler(writter http.ResponseWriter, request *ht
 		return
 	}
 
-	dbPost, err := cfg.db.PostByID(request.Context(), post_id)
+	dbPost, err := cfg.DB.PostByID(request.Context(), post_id)
 	if err != nil {
 		log.Printf("Error retriving post from post ID, not a valid uuid: %s", err)
 		writter.WriteHeader(404)
@@ -477,7 +477,7 @@ func (cfg *apiConfig) postUpdateHandler(writter http.ResponseWriter, request *ht
 		Status:      req.Status,
 	}
 
-	post, err := cfg.db.UpdatePost(request.Context(), postParams)
+	post, err := cfg.DB.UpdatePost(request.Context(), postParams)
 	if err != nil {
 		log.Printf("Error updating post in database: %s", err)
 		writter.WriteHeader(500)
@@ -492,7 +492,7 @@ func (cfg *apiConfig) postUpdateHandler(writter http.ResponseWriter, request *ht
 			return
 		}
 
-		oldCategory, err := cfg.db.PostCategoryByID(request.Context(), post.ID)
+		oldCategory, err := cfg.DB.PostCategoryByID(request.Context(), post.ID)
 		if err != nil {
 			log.Printf("Error retriving post category from post ID, not a valid uuid: %s", err)
 			writter.WriteHeader(404)
@@ -500,7 +500,7 @@ func (cfg *apiConfig) postUpdateHandler(writter http.ResponseWriter, request *ht
 		}
 
 		if oldCategory.Name != req.Category {
-			cfg.db.UpdatePostCategory(request.Context(), database.UpdatePostCategoryParams{PostID: post.ID, Name: req.Category})
+			cfg.DB.UpdatePostCategory(request.Context(), database.UpdatePostCategoryParams{PostID: post.ID, Name: req.Category})
 		}
 	}
 
@@ -528,7 +528,7 @@ func (cfg *apiConfig) postUpdateHandler(writter http.ResponseWriter, request *ht
 	writter.Write([]byte(dat))
 }
 
-func (cfg *apiConfig) postDeleteHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) PostDeleteHandler(writter http.ResponseWriter, request *http.Request) {
 	token, err := auth.GetBearerToken(request.Header)
 	if err != nil {
 		log.Printf("Error token is missing or malformed: %s", err)
@@ -536,7 +536,7 @@ func (cfg *apiConfig) postDeleteHandler(writter http.ResponseWriter, request *ht
 		return
 	}
 
-	validatedUserID, err := auth.ValidateJWT(token, cfg.secret)
+	validatedUserID, err := auth.ValidateJWT(token, cfg.Secret)
 	if err != nil {
 		log.Printf("Error token is invalid: %s", err)
 		writter.WriteHeader(401)
@@ -550,7 +550,7 @@ func (cfg *apiConfig) postDeleteHandler(writter http.ResponseWriter, request *ht
 		return
 	}
 
-	post, err := cfg.db.PostByID(request.Context(), post_id)
+	post, err := cfg.DB.PostByID(request.Context(), post_id)
 	if err != nil {
 		log.Printf("Error retriving post from post ID, not a valid uuid: %s", err)
 		writter.WriteHeader(404)
@@ -563,13 +563,13 @@ func (cfg *apiConfig) postDeleteHandler(writter http.ResponseWriter, request *ht
 		return
 	}
 
-	cfg.db.DeletePost(request.Context(), post.ID)
+	cfg.DB.DeletePost(request.Context(), post.ID)
 
 	writter.Header().Set("Content-Type", "application/json; charset=utf-8")
 	writter.WriteHeader(204)
 }
 
-func (cfg *apiConfig) postsSearchHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) PostsSearchHandler(writter http.ResponseWriter, request *http.Request) {
 	req, err := decode(request)
 	if err != nil {
 		if fmt.Sprintf("%v", err) == "EOF" {
@@ -595,17 +595,17 @@ func (cfg *apiConfig) postsSearchHandler(writter http.ResponseWriter, request *h
 		}
 	}
 
-	var location interface{}
+	var location any
 
 	if token != "" {
-		validatedUserID, err := auth.ValidateJWT(token, cfg.secret)
+		validatedUserID, err := auth.ValidateJWT(token, cfg.Secret)
 		if err != nil {
 			log.Printf("Error token is invalid: %s", err)
 			writter.WriteHeader(401)
 			return
 		}
 
-		user, err := cfg.db.UsersByID(request.Context(), validatedUserID)
+		user, err := cfg.DB.UsersByID(request.Context(), validatedUserID)
 		if err != nil {
 			log.Printf("Error could not find user id: %s", err)
 			writter.WriteHeader(400)
@@ -626,7 +626,7 @@ func (cfg *apiConfig) postsSearchHandler(writter http.ResponseWriter, request *h
 			return
 		}
 		params := database.CreateSTPointParams{StPoint: coords.Location.Lat, StPoint_2: coords.Location.Lng}
-		location, err = cfg.db.CreateSTPoint(request.Context(), params)
+		location, err = cfg.DB.CreateSTPoint(request.Context(), params)
 		if err != nil {
 			log.Printf("Error: could not create ST Point: %s", err)
 			writter.WriteHeader(500)
@@ -719,7 +719,7 @@ func (cfg *apiConfig) postsSearchHandler(writter http.ResponseWriter, request *h
 	writter.Write([]byte(dat))
 }
 
-func (cfg *apiConfig) postByIDHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) PostByIDHandler(writter http.ResponseWriter, request *http.Request) {
 	post_id, err := uuid.Parse(request.PathValue("PostID"))
 	if err != nil {
 		log.Printf("Error parsing post ID, not a valid uuid: %s", err)
@@ -727,7 +727,7 @@ func (cfg *apiConfig) postByIDHandler(writter http.ResponseWriter, request *http
 		return
 	}
 
-	post, err := cfg.db.PostByID(request.Context(), post_id)
+	post, err := cfg.DB.PostByID(request.Context(), post_id)
 	if err != nil {
 		log.Printf("Error retriving post from post ID, not a valid uuid: %s", err)
 		writter.WriteHeader(404)
@@ -748,7 +748,7 @@ func (cfg *apiConfig) postByIDHandler(writter http.ResponseWriter, request *http
 	writter.Write([]byte(dat))
 }
 
-func (cfg *apiConfig) postsByUserIDHandler(writter http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) PostsByUserIDHandler(writter http.ResponseWriter, request *http.Request) {
 	user_id, err := uuid.Parse(request.PathValue("UserID"))
 	if err != nil {
 		log.Printf("Error parsing user ID, not a valid uuid: %s", err)
@@ -756,7 +756,7 @@ func (cfg *apiConfig) postsByUserIDHandler(writter http.ResponseWriter, request 
 		return
 	}
 
-	posts, err := cfg.db.PostsByUserID(request.Context(), user_id)
+	posts, err := cfg.DB.PostsByUserID(request.Context(), user_id)
 	if err != nil {
 		log.Printf("Error retriving posts from user ID, not a valid uuid: %s", err)
 		writter.WriteHeader(404)

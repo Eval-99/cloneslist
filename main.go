@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/Eval-99/cloneslist/internal/database"
+	"github.com/Eval-99/cloneslist/internal/handlers"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -24,32 +25,32 @@ func main() {
 		log.Fatalf("Could not open server: %v", err)
 	}
 
-	apiCfg := apiConfig{
-		db:       database.New(db),
-		platform: platform,
-		secret:   secret,
-		geokey:   api_key,
+	apiCfg := handlers.ApiConfig{
+		DB:       database.New(db),
+		Platform: platform,
+		Secret:   secret,
+		Geokey:   api_key,
 	}
 
 	mux := http.NewServeMux()
 	mux.Handle("/app/", http.StripPrefix("/app", http.FileServer(http.Dir("."))))
 
-	mux.HandleFunc("POST /user/signup", apiCfg.usersSignUpHandler)
-	mux.HandleFunc("POST /user/login", apiCfg.userLoginHandler)
-	mux.HandleFunc("PUT /user/update", apiCfg.userUpdateHandler)
-	mux.HandleFunc("GET /user/{UserID}", apiCfg.userGetHandler)
-	mux.HandleFunc("DELETE /user/delete", apiCfg.userDeleteHandler)
+	mux.HandleFunc("POST /user/signup", apiCfg.UsersSignUpHandler)
+	mux.HandleFunc("POST /user/login", apiCfg.UserLoginHandler)
+	mux.HandleFunc("PUT /user/update", apiCfg.UserUpdateHandler)
+	mux.HandleFunc("GET /user/{UserID}", apiCfg.UserGetHandler)
+	mux.HandleFunc("DELETE /user/delete", apiCfg.UserDeleteHandler)
 
-	mux.HandleFunc("POST /api/refresh", apiCfg.refreshHandler)
-	mux.HandleFunc("POST /api/revoke", apiCfg.revokeHandler)
+	mux.HandleFunc("POST /api/refresh", apiCfg.RefreshHandler)
+	mux.HandleFunc("POST /api/revoke", apiCfg.RevokeHandler)
 
-	mux.HandleFunc("POST /user/post", apiCfg.userCreatePostHandler)
-	mux.HandleFunc("PUT /user/post/{PostID}", apiCfg.postUpdateHandler)
-	mux.HandleFunc("DELETE /user/post/{PostID}", apiCfg.postDeleteHandler)
+	mux.HandleFunc("POST /user/post", apiCfg.UserCreatePostHandler)
+	mux.HandleFunc("PUT /user/post/{PostID}", apiCfg.PostUpdateHandler)
+	mux.HandleFunc("DELETE /user/post/{PostID}", apiCfg.PostDeleteHandler)
 
-	mux.HandleFunc("GET /posts/search", apiCfg.postsSearchHandler)
-	mux.HandleFunc("GET /posts/{PostID}", apiCfg.postByIDHandler)
-	mux.HandleFunc("GET /posts/user/{UserID}", apiCfg.postsByUserIDHandler)
+	mux.HandleFunc("GET /posts/search", apiCfg.PostsSearchHandler)
+	mux.HandleFunc("GET /posts/{PostID}", apiCfg.PostByIDHandler)
+	mux.HandleFunc("GET /posts/user/{UserID}", apiCfg.PostsByUserIDHandler)
 
 	serverStruct := http.Server{Handler: mux, Addr: ":8080"}
 	serverStruct.ListenAndServe()
